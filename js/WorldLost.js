@@ -34,6 +34,14 @@ export default class WorldLost {
         });
     }
 
+    redrawAllCells () {
+        this.dataGrille.forEach ((line) => {
+            line.forEach ((cell) => {
+                cell.coords.updated = true;
+            });
+        });
+    }
+
     runWorld () {
         this.drawWorld ()
         window.requestAnimationFrame (this.runWorld.bind (this));

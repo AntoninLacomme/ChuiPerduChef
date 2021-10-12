@@ -1,6 +1,8 @@
 var matrice;
 var X, Y;
 var time;
+var listToRedraw = [];
+var itrace = 0;
 
 onmessage = (e) => {
     if (e.data.fx == "start") {
@@ -9,14 +11,38 @@ onmessage = (e) => {
 
         Y = matrice.length;
         X = matrice[0].length;
+        let rdmX = (Math.random() * X) | 0;
+        let rdmY = (Math.random() * Y) | 0;
+        console.log(matrice, rdmX, rdmY)
 
-        let cell = matrice[(Math.random() * X) | 0][(Math.random() * Y) | 0];
+        let cell = matrice[rdmY][rdmX];
         generation (cell, cell);
+        regeneration ();        
     }
 }
 
-function generation (cellule, celluleAppelante) {
+function regeneration () {
+    let l = listToRedraw.slice(0, listToRedraw.length);
+    console.log (listToRedraw);
+    listToRedraw = [];
+
+    l.forEach((tuple) => {
+        itrace = 0;
+        tuple[0].coords.visited = false;
+        tuple[0].coords.updated = false;
+        generation (tuple[0], tuple[1], true);
+    })
+
+    if (listToRedraw.length > 0) {
+        regeneration ();
+    }
+}
+
+function generation (cellule, celluleAppelante, trace=false) {
     if (cellule.coords.visited) {
+        if (trace) {
+            console.log("DEJA VISTEE")
+        }
         return false;
     }
     cellule.coords.visited = true;
@@ -55,11 +81,29 @@ function generation (cellule, celluleAppelante) {
     while (voisins.length > 0) {        
         sleep(time)
         rdm = (Math.random() * voisins.length) | 0;
-        generation (voisins[rdm], cellule);
+        try {
+            generation (voisins[rdm], cellule);
+        }  catch (e) {
+            console.log("AIE MAX PILE SIZE EXCEPTION !");
+            voisins[rdm].coords = {
+                top: false,
+                down: false,
+                left: false,
+                right: false,
+                visited: false,
+                updated: true
+            }
+            listToRedraw.push ([cellule, celluleAppelante]);
+            return null;
+        }
+        
         voisins = getVoisinNotVisited (cellule);
     }
     return false;
 }
+
+
+
 
 function sleep (ms) {
     const start = Date.now();
