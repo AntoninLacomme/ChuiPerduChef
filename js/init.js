@@ -5,8 +5,8 @@ window.onload = () => {
     var canvas = document.querySelector ("#canvasPerdu");
     var ctx = canvas.getContext ("2d");
 
-    let x = 200;
-    let y = 200;
+    let x = 50;
+    let y = 50;
     let marge = 5;
 
     var world = new WorldLost (ctx, x, y);
