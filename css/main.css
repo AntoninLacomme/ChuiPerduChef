@@ -1,5 +1,6 @@
 body {
     background-color: rgb(80,80,80);
+    overflow: hidden;
 }
 #canvasPerdu {
     position: absolute;

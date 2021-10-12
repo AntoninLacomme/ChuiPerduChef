@@ -5,7 +5,7 @@ window.onload = () => {
     var canvas = document.querySelector ("#canvasPerdu");
     var ctx = canvas.getContext ("2d");
 
-    let x = 50;
+    let x = 70;
     let y = 50;
     let marge = 5;
 
@@ -30,7 +30,7 @@ let setDimensions = (canvas, x, y, marge) => {
 
 function generationWorker (world) {
     let workerPerdu = new Worker ("js/wGenerationLost.js");
-    workerPerdu.postMessage ({"matrice": world.dataGrille, "time": 1, "fx": "start"});
+    workerPerdu.postMessage ({"matrice": world.dataGrille, "time": 15, "fx": "start"});
     workerPerdu.onmessage = (ev) => {
         world.update (ev.data[0]);
         world.update (ev.data[1]);
