@@ -17,12 +17,19 @@ export default class CelluleLost {
             visited: false,
             updated: true
         }
+
+        this.calculDimensions ();
+    }
+
+    calculDimensions () {
+        this.clientX = this.posX * CelluleLost.widthCell + CelluleLost.margeLeft;
+        this.clientY = this.posY * CelluleLost.widthCell + CelluleLost.margeTop;
     }
 
     drawCellule (ctx) {
         if (this.coords.updated) {
             ctx.save ();
-            ctx.translate (this.posX * CelluleLost.widthCell + CelluleLost.margeLeft, this.posY * CelluleLost.widthCell + CelluleLost.margeTop);
+            ctx.translate (this.clientX, this.clientY);
             ctx.clearRect (0, 0, CelluleLost.widthCell, CelluleLost.widthCell);
 
             if (!this.coords.top) {

@@ -5,15 +5,17 @@ window.onload = () => {
     var canvas = document.querySelector ("#canvasPerdu");
     var ctx = canvas.getContext ("2d");
 
-    let x = 200;
-    let y = 180;
+    let x = 100;
+    let y = 100;
     let marge = 5;
 
     var world = new WorldLost (ctx, x, y);
-
+/*
     for (let i=0; i<1; i++) {
         generationWorker (world);
     }
+*/
+
 
     setDimensions (canvas, world, x, y, marge);
 }
@@ -28,6 +30,9 @@ let setDimensions = (canvas, world, x, y, marge) => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     }
+
+    world.redimentionCellules ();
+
     canvas.zoom = 1;
     canvas.currentZoom = 1;
     canvas.transX = 0;
