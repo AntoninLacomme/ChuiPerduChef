@@ -1,19 +1,19 @@
-import WorldLost from './WorldLost';
-import CelluleLost from './CelluleLost';
+import WorldLost from './WorldLost.js';
+import CelluleLost from './CelluleLost.js';
+import GenerationWorker from './wGenerationLost.js';
 
 window.onload = () => {
   const canvas = document.querySelector('#canvasPerdu');
   const ctx = canvas.getContext('2d');
 
-  const x = 70;
-  const y = 50;
+  const x = 1000;
+  const y = 500;
   const marge = 5;
 
-  const world = new WorldLost(ctx, x, y);
+  const world = new WorldLost(ctx, x, y, 1000, false);
 
-  for (let i = 0; i < 1; i++) {
-    generationWorker(world);
-  }
+  // setTimeout(generationWorker, 1000, world);
+  generationWorker(world);
 
   setDimensions(canvas, x, y, marge);
 };
@@ -29,11 +29,21 @@ const setDimensions = (canvas, x, y, marge) => {
 };
 
 function generationWorker (world) {
-  const workerPerdu = new window.Worker('js/wGenerationLost.js');
-  workerPerdu.postMessage({ matrice: world.dataGrille, time: 15, fx: 'start' });
-  workerPerdu.onmessage = (ev) => {
-    world.update(ev.data[0]);
-    world.update(ev.data[1]);
+  const generationWorker = new GenerationWorker();
+  const x = Math.floor(Math.random() * world.x);
+  const y = Math.floor(Math.random() * world.y);
+  const cell = new CelluleLost(x, y);
+  world.dataGrille[y][x] = cell;
+  generationWorker.onMessage = (data) => {
+    if (data === null) return;
+    if (data.state === 'done') {
+      window.alert('done');
+      world.drawWorld();
+    } else if (data.state === 'building') {
+      world.update(data.current[0]);
+      world.update(data.current[1]);
+    }
   };
-  return workerPerdu;
+  generationWorker.generateWorld(world, 0, x, y);
+  return generationWorker;
 }

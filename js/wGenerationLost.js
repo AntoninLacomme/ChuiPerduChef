@@ -1,83 +1,80 @@
-let matrice;
-let X, Y;
-let time;
+import CelluleLost from './CelluleLost.js';
+
+let w;
 let cellsToDo;
+let currentWork;
 
-onmessage = (e) => { // eslint-disable-line no-undef
-  if (e.data.fx === 'start') {
-    matrice = e.data.matrice;
-    time = e.data.time;
-
-    Y = matrice.length;
-    X = matrice[0].length;
-
-    const cell = matrice[(Math.random() * X) | 0][(Math.random() * Y) | 0];
+export default class GenerationWorker {
+  async generateWorld (world, time, x, y) {
+    w = world;
+    const cell = world.dataGrille[y][x];
     cellsToDo = [[cell, cell]];
     do {
-      const currentWork = cellsToDo.pop();
-      generation(currentWork[0], currentWork[1]);
+      currentWork = cellsToDo.pop();
+      if (currentWork[0] === null) {
+        currentWork[0] = new CelluleLost(currentWork[3], currentWork[2]);
+        w.dataGrille[currentWork[2]][currentWork[3]] = currentWork[0];
+      }
+      const newCells = this.generation(currentWork[0], currentWork[1]);
+      if (newCells !== null && newCells.length > 0) cellsToDo.push(...shuffle(newCells));
     } while (cellsToDo.length > 0);
-  }
-};
-
-function generation (cellule, celluleAppelante) {
-  if (cellule.coords.visited) {
-    return false;
-  }
-  cellule.coords.visited = true;
-  switch (cellule.posX - celluleAppelante.posX) {
-    case 0:
-      break;
-    case 1:
-      cellule.coords.left = true;
-      celluleAppelante.coords.right = true;
-      break;
-    case -1:
-      cellule.coords.right = true;
-      celluleAppelante.coords.left = true;
-      break;
+    if (cellsToDo.length === 0) this.onMessage({ state: 'done' });
   }
 
-  switch (cellule.posY - celluleAppelante.posY) {
-    case 0:
-      break;
-    case 1:
-      cellule.coords.top = true;
-      celluleAppelante.coords.down = true;
-      break;
-    case -1:
-      cellule.coords.down = true;
-      celluleAppelante.coords.top = true;
-      break;
-  }
-  cellule.coords.updated = true;
-  celluleAppelante.coords.updated = true;
+  generation (cellule, celluleAppelante) {
+    if (cellule.coords.visited) {
+      return null;
+    }
+    cellule.coords.visited = true;
+    switch (cellule.posX - celluleAppelante.posX) {
+      case 0:
+        break;
+      case 1:
+        cellule.coords.left = true;
+        celluleAppelante.coords.right = true;
+        break;
+      case -1:
+        cellule.coords.right = true;
+        celluleAppelante.coords.left = true;
+        break;
+    }
 
-  postMessage([cellule, celluleAppelante]); // eslint-disable-line no-undef
+    switch (cellule.posY - celluleAppelante.posY) {
+      case 0:
+        break;
+      case 1:
+        cellule.coords.top = true;
+        celluleAppelante.coords.down = true;
+        break;
+      case -1:
+        cellule.coords.down = true;
+        celluleAppelante.coords.top = true;
+        break;
+    }
+    cellule.coords.updated = true;
+    celluleAppelante.coords.updated = true;
 
-  let voisins = getVoisinNotVisited(cellule);
-  let rdm = 0;
-  while (voisins.length > 0) {
-    sleep(time);
-    rdm = (Math.random() * voisins.length) | 0;
-    generation(voisins[rdm], cellule);
-    voisins = getVoisinNotVisited(cellule);
+    this.onMessage({ state: 'building', current: [cellule, celluleAppelante] }); // eslint-disable-line no-undef
+
+    return getVoisinNotVisited(cellule);
   }
-  return false;
+
+  onMessage () { /* Implement this */ }
 }
 
-function sleep (ms) {
-  const start = Date.now();
-  while (Date.now() - start < ms) {
-    // Do nothing
+function shuffle (a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
+  return a;
 }
 
 const coordsAreInMatrice = (x, y) => {
   if (x < 0 || y < 0) {
     return false;
   }
-  if (x >= X || y >= Y) {
+  if (x >= w.x || y >= w.y) {
     return false;
   }
   return true;
@@ -87,16 +84,15 @@ const getVoisinNotVisited = (c) => {
   const cells = [];
   for (let i = -1; i < 2; i = i + 2) {
     if (coordsAreInMatrice(c.posX, c.posY + i)) {
-      if (!matrice[c.posY + i][c.posX].coords.visited) {
-        cells.push(matrice[c.posY + i][c.posX]);
+      if (w.dataGrille[c.posY + i][c.posX] === null || !w.dataGrille[c.posY + i][c.posX].coords.visited) {
+        cells.push([w.dataGrille[c.posY + i][c.posX], c, c.posY + i, c.posX]);
       }
     }
     if (coordsAreInMatrice(c.posX + i, c.posY)) {
-      if (!matrice[c.posY][c.posX + i].coords.visited) {
-        cells.push(matrice[c.posY][c.posX + i]);
+      if (w.dataGrille[c.posY][c.posX + i] === null || !w.dataGrille[c.posY][c.posX + i].coords.visited) {
+        cells.push([w.dataGrille[c.posY][c.posX + i], c, c.posY, c.posX + i]);
       }
     }
   }
   return cells;
-}
-;
+};

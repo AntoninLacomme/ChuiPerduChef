@@ -1,23 +1,31 @@
-import CelluleLost from './CelluleLost';
+import CelluleLost from './CelluleLost.js';
 
 export default class WorldLost {
-  constructor (ctx, x, y) {
-    this.dataGrille = this.generateDataGrille(x, y);
+  constructor (ctx, x, y, drawTime, initCells = false) {
+    this.generateDataGrille(x, y, initCells);
+    this.x = x;
+    this.y = y;
 
     this.ctx = ctx;
-    this.runWorld();
+    this.drawTime = drawTime;
+    if (this.drawTime !== Infinity) this.runWorld();
   }
 
-  generateDataGrille (x, y) {
-    const mat = [];
+  generateDataGrille (x, y, initCells) {
+    this.dataGrille = [];
     for (let i = 0; i < y; i++) {
-      const line = [];
-      for (let j = 0; j < x; j++) {
-        line.push(new CelluleLost(j, i));
+      const list = [];
+      if (initCells) {
+        for (let j = 0; j < x; j++) {
+          list.push(new CelluleLost(j, i));
+        }
+      } else {
+        for (let j = 0; j < x; j++) {
+          list.push(null);
+        }
       }
-      mat.push(line);
+      this.dataGrille.push(list);
     }
-    return mat;
   }
 
   update (skeletonCell) {
@@ -25,16 +33,24 @@ export default class WorldLost {
   }
 
   drawWorld () {
+    console.log('draw');
     this.ctx.strokeStyle = 'ivory';
     this.dataGrille.forEach((line) => {
       line.forEach((cell) => {
-        cell.drawCellule(this.ctx);
+        if (cell) {
+          // console.log('draw cell');
+          cell.drawCellule(this.ctx);
+        }
       });
     });
   }
 
   runWorld () {
     this.drawWorld();
-    window.requestAnimationFrame(this.runWorld.bind(this));
+    if (!this.drawTime || this.drawTime === 0) {
+      window.requestAnimationFrame(this.runWorld.bind(this));
+    } else if (this.drawTime !== Infinity) {
+      setTimeout(this.runWorld.bind(this), this.drawTime);
+    }
   }
 }
