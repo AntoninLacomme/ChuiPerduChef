@@ -1,0 +1,8 @@
+body {
+    background-color: rgb(80,80,80);
+}
+#canvasPerdu {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
