@@ -95,10 +95,10 @@ export default class WorldLost {
     
         // this.update (cellule, celluleAppelante);
     
-       
+        let voisins = this.getVoisinNotVisited (cellule);
+        let rdm = 0;
         try {
-            let voisins = this.getVoisinNotVisited (cellule);
-            let rdm = 0;
+            
             while (voisins.length > 0) {
                 rdm = (Math.random() * voisins.length) | 0;
                 this.generation (voisins[rdm], cellule);            
