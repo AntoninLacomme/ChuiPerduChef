@@ -75,7 +75,7 @@ let setDimensions = (canvas, world, x, y, marge) => {
 }
 
 function generationWorker (world, time=100) {
-    let workerPerdu = new Worker ("../../assets/js/wGenerationLost.js");
+    let workerPerdu = new Worker ("./assets/js/wGenerationLost.js");
     workerPerdu.postMessage ({"matrice": world.dataGrille, "time": time, "fx": "start"});
     workerPerdu.onmessage = (ev) => {
         world.update (ev.data[0], ev.data[1]);
