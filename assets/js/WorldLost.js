@@ -1,25 +1,26 @@
-import CelluleLost from "/js/CelluleLost.js";
+import CelluleLost from "../../assets/js/CelluleLost.js";
 
 export default class WorldLost {
 
-    constructor (ctx, x, y, time=100) {
+    constructor (ctx, x, y, generate=false) {
         this.dataGrille = this.generateDataGrille (x, y);
         this.nbLines = y;
         this.nbColumns = x;
         this.listToRedraw = [];
-        this.time = time;
 
         this.ctx = ctx;
 
-        this.updated = true;
+        this.updated = 0;
 
         this.redrawAllCells ();
 
-        let rdmX = (Math.random() * x) | 0;
-        let rdmY = (Math.random() * y) | 0;
-        let cell = this.dataGrille[rdmY][rdmX];
-        this.generation (cell, cell);
-        this.regeneration ();
+        if (generate) {
+            let rdmX = (Math.random() * x) | 0;
+            let rdmY = (Math.random() * y) | 0;
+            let cell = this.dataGrille[rdmY][rdmX];
+            this.generation (cell, cell);
+            this.regeneration ();
+        }
 
         this.runWorld ();
     }
@@ -63,7 +64,12 @@ export default class WorldLost {
         return true;
     }
 
-    async generation (cellule, celluleAppelante) {
+    update (skeletonCell1, skeletonCell2) {
+        this.dataGrille[skeletonCell1.posY][skeletonCell1.posX].coords = skeletonCell1.coords;
+        this.dataGrille[skeletonCell2.posY][skeletonCell2.posX].coords = skeletonCell2.coords;
+    }
+
+    generation (cellule, celluleAppelante) {
         cellule.coords.visited = true;
         switch (cellule.posX - celluleAppelante.posX) {
             case 0:
@@ -90,36 +96,23 @@ export default class WorldLost {
                 celluleAppelante.coords.top = true;
                 break;
         }
-        cellule.coords.updated = true;
-        celluleAppelante.coords.updated = true;
-    
-        // this.update (cellule, celluleAppelante);
+        cellule.coords.updated = 0;
+        celluleAppelante.coords.updated = 0;
     
         let voisins = this.getVoisinNotVisited (cellule);
         let rdm = 0;
         try {
-            
             while (voisins.length > 0) {
                 rdm = (Math.random() * voisins.length) | 0;
                 this.generation (voisins[rdm], cellule);            
                 voisins = this.getVoisinNotVisited (cellule);
             }
-        }  catch (e) {
-            voisins[rdm].coords = {
-                top: false,
-                down: false,
-                left: false,
-                right: false,
-                visited: false,
-                updated: true
-            }
+        } catch (e) {
             this.listToRedraw.push ([cellule, celluleAppelante]);
-            return null;
         }
-        return false;
     }
 
-    async regeneration () {
+    regeneration () {
         let l = this.listToRedraw.slice(0, this.listToRedraw.length);
         this.listToRedraw = [];
     
@@ -134,13 +127,6 @@ export default class WorldLost {
         }
     }
 
-
-
-    update (skeletonCell1, skeletonCell2) {
-        this.dataGrille[skeletonCell1.posY][skeletonCell1.posX].coords = skeletonCell1.coords;
-        this.dataGrille[skeletonCell2.posY][skeletonCell2.posX].coords = skeletonCell2.coords;
-    }
-
     drawWorld () {
         this.ctx.strokeStyle = "ivory";
         for (let line=0; line<this.nbLines; line++) {
@@ -151,9 +137,9 @@ export default class WorldLost {
             }
         }
 
-        if (this.updated) {
+        if (this.updated < 2) {
             this.drawLimits (this.ctx);
-            this.updated = false;
+            this.updated++;
         }
     }
 
@@ -165,10 +151,12 @@ export default class WorldLost {
     }
 
     redrawAllCells () {
-        this.updated = true;
+        this.updated = 0;
+        
+        this.ctx.clearRect (-window.innerWidth * 100, -window.innerHeight * 100, window.innerWidth * 200, window.innerHeight * 200)
         this.dataGrille.forEach ((line) => {
             line.forEach ((cell) => {
-                cell.coords.updated = true;
+                cell.coords.updated = 0;
             });
         });
     }
@@ -185,13 +173,16 @@ export default class WorldLost {
         this.drawWorld ()
         window.requestAnimationFrame (this.runWorld.bind (this));
     }
-}
 
-
-
-function sleep (ms) {
-    const start = Date.now();
-    while (Date.now() - start < ms) {
-
+    getJSON () {
+        let mat = [];
+        this.dataGrille.forEach ((line) => {
+            let lline = [];
+            line.forEach ((cell) => {
+                lline.push (cell.getValues ())
+            })
+            mat.push (lline);
+        })
+        return JSON.stringify (mat);
     }
 }

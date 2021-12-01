@@ -1,21 +1,25 @@
-import WorldLost from "/js/WorldLost.js";
-import CelluleLost from "/js/CelluleLost.js";
+import WorldLost from "../../assets/js/WorldLost.js";
+import CelluleLost from "../../assets/js/CelluleLost.js";
+
+var world = null;
+window.exportMatrice = () => {
+    return world.getJSON ()
+}
 
 window.onload = () => {
     var canvas = document.querySelector ("#canvasPerdu");
     var ctx = canvas.getContext ("2d");
 
-    let x = 200;
-    let y = 200;
+    let x = 20;
+    let y = 20;
     let marge = 5;
+    let generate = false;
 
-    var world = new WorldLost (ctx, x, y);
-/*
-    for (let i=0; i<1; i++) {
-        generationWorker (world);
+    world = new WorldLost (ctx, x, y, generate);
+
+    if (!generate) {
+        generationWorker (world, 1);
     }
-*/
-
 
     setDimensions (canvas, world, x, y, marge);
 }
@@ -65,18 +69,17 @@ let setDimensions = (canvas, world, x, y, marge) => {
     canvas.addEventListener ("mousemove", (ev) => {
         if (canvas.move) {
             ctx.translate (ev.movementX, ev.movementY);
-            ctx.clearRect (-canvas.width * 100, -canvas.height * 100, canvas.width * 200, canvas.height * 200)
             world.redrawAllCells ();
         }
     })
 }
 
-function generationWorker (world) {
-    let workerPerdu = new Worker ("js/wGenerationLost.js");
-    workerPerdu.postMessage ({"matrice": world.dataGrille, "time": 0, "fx": "start"});
+function generationWorker (world, time=100) {
+    let workerPerdu = new Worker ("../../assets/js/wGenerationLost.js");
+    workerPerdu.postMessage ({"matrice": world.dataGrille, "time": time, "fx": "start"});
     workerPerdu.onmessage = (ev) => {
-        world.update (ev.data[0]);
-        world.update (ev.data[1]);
+        world.update (ev.data[0], ev.data[1]);
+        world.redrawAllCells ();
     }
     return workerPerdu;
 }

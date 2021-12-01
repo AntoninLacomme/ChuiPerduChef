@@ -11,11 +11,8 @@ onmessage = (e) => {
 
         Y = matrice.length;
         X = matrice[0].length;
-        let rdmX = (Math.random() * X) | 0;
-        let rdmY = (Math.random() * Y) | 0;
-        console.log(matrice, rdmX, rdmY)
 
-        let cell = matrice[rdmY][rdmX];
+        let cell = matrice[(Math.random() * Y) | 0][(Math.random() * X) | 0];
         generation (cell, cell);
         regeneration ();        
     }
@@ -23,13 +20,12 @@ onmessage = (e) => {
 
 function regeneration () {
     let l = listToRedraw.slice(0, listToRedraw.length);
-    console.log (listToRedraw);
     listToRedraw = [];
 
     l.forEach((tuple) => {
         itrace = 0;
         tuple[0].coords.visited = false;
-        tuple[0].coords.updated = false;
+        tuple[0].coords.updated = 2;
         generation (tuple[0], tuple[1], true);
     })
 
@@ -38,11 +34,8 @@ function regeneration () {
     }
 }
 
-function generation (cellule, celluleAppelante, trace=false) {
+function generation (cellule, celluleAppelante) {
     if (cellule.coords.visited) {
-        if (trace) {
-            console.log("DEJA VISTEE")
-        }
         return false;
     }
     cellule.coords.visited = true;
@@ -71,8 +64,8 @@ function generation (cellule, celluleAppelante, trace=false) {
             celluleAppelante.coords.top = true;
             break;
     }
-    cellule.coords.updated = true;
-    celluleAppelante.coords.updated = true;
+    cellule.coords.updated = 0;
+    celluleAppelante.coords.updated = 0;
 
     postMessage ([cellule, celluleAppelante]);
 
@@ -91,7 +84,7 @@ function generation (cellule, celluleAppelante, trace=false) {
                 left: false,
                 right: false,
                 visited: false,
-                updated: true
+                updated: 0
             }
             listToRedraw.push ([cellule, celluleAppelante]);
             return null;

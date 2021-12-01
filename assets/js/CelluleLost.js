@@ -15,7 +15,7 @@ export default class CelluleLost {
             left: false,
             right: false,
             visited: false,
-            updated: true
+            updated: 0
         }
 
         this.calculDimensions ();
@@ -27,7 +27,7 @@ export default class CelluleLost {
     }
 
     drawCellule (ctx) {
-        if (this.coords.updated) {
+        if (this.coords.updated < 2) {
             ctx.save ();
             ctx.translate (this.clientX, this.clientY);
             ctx.clearRect (0, 0, CelluleLost.widthCell, CelluleLost.widthCell);
@@ -45,7 +45,7 @@ export default class CelluleLost {
                 this.drawLine (ctx, CelluleLost.widthCell, 0, CelluleLost.widthCell, CelluleLost.widthCell);
             }
 
-            this.coords.updated = false;
+            this.coords.updated++;
 
             ctx.restore ();
         }
@@ -56,5 +56,12 @@ export default class CelluleLost {
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.stroke();
+    }
+
+    getValues () {
+        return {top: this.coords.top,
+            down: this.coords.down,
+            left: this.coords.left,
+            right: this.coords.right}
     }
 }
